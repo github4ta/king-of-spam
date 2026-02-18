@@ -36,7 +36,7 @@ test.skip('home page pl', async ({ page }) => {
     }); */
 });
 
-test('get img', async ({ page }) => {
+test.skip('get img', async ({ page }) => {
     await page.goto(home_url_pl, {
         waitUntil: 'networkidle'
     });
@@ -91,7 +91,7 @@ test('get img', async ({ page }) => {
     headers.forEach(header => {
         console.log(header.level);
         console.log(header.text);
-        console.log('----------')
+        console.log('----------');
     });
 
     /*var srcs = await page.$$eval('img', imgs => imgs.map(img => img.src));
@@ -100,4 +100,58 @@ test('get img', async ({ page }) => {
 
     srcs = await page.$$eval('video', videos => videos.map(video => video.src));
     srcs.forEach(src => console.log(src));*/
+});
+
+test.skip('check links', async ({ page }) => {
+    await page.goto(home_url_pl, {
+        waitUntil: 'networkidle'
+    });
+
+    await page.click(button_accept_cookie);
+
+    const scrollHeight = await page.evaluate(() => document.body.scrollHeight);
+    console.log('Total HEIGHT:', scrollHeight);
+
+    await page.evaluate(() => {
+        window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+        });
+    });
+
+    // 1. Extract all links
+    const urls = await page.$$eval('a', tags => tags.map(tag => ({
+        href: tag.href,
+        status_code: -1 // JavaScript allows changing this to a number later
+    })));
+
+    // 2. Filter to only valid web URLs (ignores mailto:, tel:, #, etc.)
+    const validUrls = urls.filter(link => link.href.startsWith('http'));
+
+    // 3. Perform GET requests (using a loop to avoid hitting rate limits too hard)
+    for (const item of validUrls) {
+        try {
+            // Use Playwright's built-in request context
+            const response = await page.request.get(item.href, {
+                failOnStatusCode: false // Prevents throwing if 404/500
+            });
+            item.status_code = response.status();
+
+            // console.log(`Checked: ${item.status_code} - ${item.href}`);
+        } catch (error) {
+            // Treat error as 'any' to bypass the 'unknown' check
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            item.status_code = 0;
+            console.error(`Error fetching ${item.href}:`, errorMessage);
+        }
+    }
+
+    console.log("========== LINKS ==========")
+    console.log('Number of a = ' + urls.length);
+    console.log('Number of LINKS = ' + validUrls.length);
+    validUrls.forEach(validUrl => {
+        console.log(validUrl.href);
+        console.log(validUrl.status_code);
+        console.log('----------');
+    });
 });
