@@ -1,39 +1,65 @@
-// @ts-check
 import { test, expect } from '@playwright/test';
-// const { chromium } = require('playwright');
 
 // const home_url_pl = 'https://www.kingspan.com/pl/';
 const home_url_pl = 'https://www.kingspan.com/pl/pl/o-nas/';
 const button_accept_cookie = '#ccc-notify-accept';
+const time_to_wait = 500;
 
-test.skip('home page pl', async ({ page }) => {
-    /*const browser = await chromium.launch({
-        channel: 'chrome',
-        headless: false // Set to true if you don't want to see the window
-    });*/
+test.use({
+    viewport: { width: 1920, height: 1080 }, // Fake "maximized"
+    deviceScaleFactor: 1.25
+});
 
+test('home page pl', async ({ page }) => {
+    test.setTimeout(120000);
     await page.goto(home_url_pl, {
         waitUntil: 'networkidle'
     });
-    //await page.goto(home_url_pl, { waitUntil: 'load' });
-    //await page.waitForTimeout(4000);
-    await await page.click(button_accept_cookie);
 
+    await await page.click(button_accept_cookie);
+    await page.waitForTimeout(time_to_wait);
+
+    const scrollHeight = await page.evaluate(() => document.body.scrollHeight);
+    console.log("Scroll HEIGHT = " + scrollHeight);
+    const scrollTimes = Number.parseInt(scrollHeight / 500);
+    console.log("Scroll TIMES = " + scrollTimes);
+
+    for (var i = 1; i < scrollTimes; i++) {
+        console.log("i = " + i + " - " + (i <= scrollTimes) + " -> " + scrollTimes);
+        await page.evaluate(() => {
+            window.scrollBy({
+                top: 500,
+                behavior: 'smooth'
+            });
+        });
+        await page.waitForTimeout(time_to_wait);
+    }
+
+    console.log("Pages Scrolled");
     await page.evaluate(async () => {
         window.scrollTo(0, document.body.scrollHeight);
     });
 
-    await page.emulateMedia({ media: 'screen' });
+    await page.waitForTimeout(time_to_wait);
+
+    console.log("Pages Scrolled to Top");
+    await page.evaluate(async () => {
+        window.scrollTo(0, 0);
+    });
+
+    await page.waitForTimeout(time_to_wait);
 
     const timestamp = Date.now();
+
     await page.screenshot({
-        path: 'fullpage' + timestamp + '.png',
+        path: 'images/prod/fullpage' + timestamp + '.png',
         fullPage: true
     });
-    /* await expect(page).toHaveScreenshot({
+
+    await expect(page).toHaveScreenshot('images\stage\fullpage1771420317828.png', {
         fullPage: true,
         threshold: 0.2
-    }); */
+    });
 });
 
 test.skip('get img', async ({ page }) => {
