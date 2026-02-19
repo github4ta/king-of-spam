@@ -17,6 +17,7 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testMatch: "*.spec.js",
     },
     // {
     //   name: "firefox",

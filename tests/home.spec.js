@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { buildUrl, button_accept_cookie } from "../constants/constants";
 
-const prodUrl = "https://www.kingspan.com/pl/pl/kontakt/";
-const stageUrl = "https://stage.kingspan.com/pl/pl/kontakt/";
+const prodUrlContact = buildUrl("prod", "pl", "contact");
+const stageUrlContact = buildUrl("stage", "pl", "contact");
 
-const button_accept_cookie = "#ccc-notify-accept";
 const time_to_wait = 200;
 const screen_height = 700;
 
@@ -69,7 +69,7 @@ test.use({
 test("home page pl", async ({ page }) => {
   test.setTimeout(600000);
   /*
-    await page.goto(prodUrl, {
+    await page.goto(prodUrlContact, {
         waitUntil: 'networkidle'
     });
 
@@ -107,9 +107,9 @@ test("home page pl", async ({ page }) => {
     await page.waitForTimeout(time_to_wait);
     */
 
-  await openPageAndDoSnapshot(page, prodUrl);
+  await openPageAndDoSnapshot(page, prodUrlContact);
 
-  await openPageAndDoSnapshot(page, prodUrl);
+  await openPageAndDoSnapshot(page, prodUrlContact);
   // const timestamp = Date.now();
 
   /*
@@ -122,5 +122,13 @@ test("home page pl", async ({ page }) => {
   await expect(page).toHaveScreenshot("snapshots/prod/fullpage.png", {
     fullPage: true,
     threshold: 0.2,
+  });
+  console.log("========== LINKS ==========");
+  console.log("Number of a = " + urls.length);
+  console.log("Number of LINKS = " + validUrls.length);
+  validUrls.forEach((validUrl) => {
+    console.log(validUrl.href);
+    console.log(validUrl.status_code);
+    console.log("----------");
   });
 });
