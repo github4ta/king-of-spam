@@ -1,11 +1,11 @@
 import { test, expect } from "@playwright/test";
 
-const { buildUrl } = require("../constants/constants.js");
+const prodUrl = "https://www.kingspan.com/pl/pl/";
+const stageUrl = "https://stage.kingspan.com/pl/pl/";
 
-const prodUrlHome = buildUrl("prod", "pl", "home");
-const stageUrlHome = buildUrl("stage", "pl", "home");
-const prodUrlAbout = buildUrl("prod", "pl", "about");
+const home_url_pl = "https://www.kingspan.com/pl/pl/o-nas/";
 
+const button_accept_cookie = "#ccc-notify-accept";
 const time_to_wait = 500;
 
 async function openPageAndDoSnapshot(page, url) {
@@ -69,7 +69,7 @@ test.use({
 test.skip("home page pl", async ({ page }) => {
   test.setTimeout(120000);
   /*
-    await page.goto(prodUrlHome, {
+    await page.goto(prodUrl, {
         waitUntil: 'networkidle'
     });
 
@@ -107,9 +107,9 @@ test.skip("home page pl", async ({ page }) => {
     await page.waitForTimeout(time_to_wait);
     */
 
-  openPageAndDoSnapshot(page, prodUrlHome);
+  openPageAndDoSnapshot(page, prodUrl);
 
-  openPageAndDoSnapshot(page, stageUrlHome);
+  openPageAndDoSnapshot(page, stageUrl);
   // const timestamp = Date.now();
 
   /*
@@ -205,29 +205,22 @@ test.skip("check links", async ({ page }) => {
     });
   });
 
-  // 1. Extract all links
   const urls = await page.$$eval("a", (tags) =>
     tags.map((tag) => ({
       href: tag.href,
-      status_code: -1, // JavaScript allows changing this to a number later
+      status_code: -1,
     })),
   );
 
-  // 2. Filter to only valid web URLs (ignores mailto:, tel:, #, etc.)
   const validUrls = urls.filter((link) => link.href.startsWith("http"));
 
-  // 3. Perform GET requests (using a loop to avoid hitting rate limits too hard)
   for (const item of validUrls) {
     try {
-      // Use Playwright's built-in request context
       const response = await page.request.get(item.href, {
-        failOnStatusCode: false, // Prevents throwing if 404/500
+        failOnStatusCode: false,
       });
       item.status_code = response.status();
-
-      // console.log(`Checked: ${item.status_code} - ${item.href}`);
     } catch (error) {
-      // Treat error as 'any' to bypass the 'unknown' check
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       item.status_code = 0;
