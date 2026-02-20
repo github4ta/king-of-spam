@@ -25,6 +25,9 @@ test.describe(`${pageKey} prod vs stage`, () => {
         stagingUrl,
         paths,
         PageObject: AnyPage,
+        lang,
+        pageKey,
+        device,
       });
     });
   }

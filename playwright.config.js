@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  // snapshotPathTemplate: "{testDir}/../snapshots/{arg}{ext}",
+  snapshotDir: "./snapshots",
+  snapshotPathTemplate: "{snapshotDir}/{arg}{ext}",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -11,7 +12,7 @@ export default defineConfig({
   use: {
     trace: "on-first-retry",
     ignoreHTTPSErrors: true,
-    deviceScaleFactor: 1.25,
+    // deviceScaleFactor: 1.25,
   },
   expect: {
     toHaveScreenshot: {
