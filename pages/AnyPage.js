@@ -1,8 +1,8 @@
-import { button_accept_cookie } from "../constants/constants";
+import { BUTTON_ACCEPT_COOKIE } from "../constants/constants";
 export class AnyPage {
   constructor(page) {
     this.page = page;
-    this.acceptCookieButton = page.locator(button_accept_cookie);
+    this.acceptCookieButton = page.locator(BUTTON_ACCEPT_COOKIE);
   }
 
   async open(url) {
@@ -28,7 +28,7 @@ export class AnyPage {
     );
     console.log("Scroll HEIGHT = " + scrollHeight);
 
-    const scrollTimes = Math.floor(scrollHeight / AnyPage.screenHeight);
+    const scrollTimes = Math.floor(scrollHeight / screenHeight);
     console.log("Scroll TIMES = " + scrollTimes);
 
     for (let i = 1; i < scrollTimes; i++) {

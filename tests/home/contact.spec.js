@@ -1,33 +1,30 @@
-import { test, expect } from "@playwright/test";
-import { AnyPage } from "../../pages/AnyPage.js";
+import { test } from "@playwright/test";
 import { LANGS } from "../../constants/constants.js";
-import { buildPath, buildSnapshotPath } from "../../helpers/helpers.js";
+import {
+  buildUrl,
+  getSnapshotPaths,
+  compareEnvs,
+} from "../../helpers/helpers.js";
+import { AnyPage } from "../../pages/AnyPage.js";
 
 const pageKey = "contact";
 
-test.describe(`${pageKey} page screenshot`, () => {
+test.describe(`${pageKey} prod vs stage`, () => {
   for (const lang of Object.keys(LANGS)) {
-    test(`lang: ${lang}`, async ({ page }, testInfo) => {
-      const [env, device] = testInfo.project.name.split("-");
+    test(`lang: ${lang}`, async ({ browser }, testInfo) => {
+      const device = testInfo.project.name.split("-")[1];
 
-      testInfo.title = `${pageKey} | lang: ${lang} | device: ${device} | env: ${env}`;
+      const productionUrl = buildUrl("production", pageKey, lang);
+      const stagingUrl = buildUrl("staging", pageKey, lang);
 
-      const anyPage = new AnyPage(page);
-      const path = buildPath(pageKey, lang);
+      const paths = getSnapshotPaths({ lang, device, pageKey });
 
-      const screenshotPath = buildSnapshotPath({
-        lang,
-        device,
-        pageKey,
-        env,
-      });
-
-      await anyPage.open(path);
-      await anyPage.clickAcceptCookieButton();
-      await anyPage.scrollPage();
-
-      await expect(page).toHaveScreenshot(screenshotPath, {
-        fullPage: true,
+      await compareEnvs({
+        browser,
+        productionUrl,
+        stagingUrl,
+        paths,
+        PageObject: AnyPage,
       });
     });
   }

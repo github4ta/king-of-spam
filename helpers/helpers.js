@@ -1,48 +1,52 @@
-import { LANGS, PAGES } from "../constants/constants";
+import fs from "fs";
+import path from "path";
+import { expect } from "@playwright/test";
+import { LANGS, PAGES, BASE_URLS } from "../constants/constants.js";
 
-export function buildPath(pageKey, lang) {
-  return `${LANGS[lang]}${PAGES[pageKey][lang]}`;
+export function buildUrl(env, pageKey, lang) {
+  return `${BASE_URLS[env]}${LANGS[lang]}${PAGES[pageKey][lang]}`;
 }
 
-export function buildSnapshotPath({ lang, device, pageKey, env }) {
-  return [lang, device, pageKey, env, `${pageKey}.png`];
+export function getSnapshotPaths({ lang, device, pageKey }) {
+  const dir = path.join("snapshots", lang, device, pageKey);
+  fs.mkdirSync(dir, { recursive: true });
+
+  return {
+    production: path.join(dir, "production.png"),
+    staging: path.join(dir, "staging.png"),
+  };
 }
 
-// module.exports = { buildPath, buildSnapshotPath };
-/**
- * ===================== HOW TO RUN TESTS =====================
- *
- * 1. First run (create baseline screenshots):
- *    npx playwright test --project=prod-desktop --update-snapshots
- *    → Creates folders in /snapshots
- *    → Saves baseline screenshots
- *    → Overwrites existing baselines
- *
- * 2. Regular run (comparison mode):
- *    npx playwright test --project=prod-desktop
- *    → Does NOT overwrite screenshots
- *    → Compares current UI with baseline
- *    → If different → test fails
- *    → Diff images saved in /test-results
- *
- * 3. Stage verification:
- *    npx playwright test --project=stage-desktop
- *    → Uses the same baseline as prod
- *    → Compares stage against prod baseline
- *    → Baseline is NOT modified
- *
- * IMPORTANT:
- * --update-snapshots should be used ONLY for prod.
- * Never update snapshots from stage.
- *
- * Snapshots structure:
- * snapshots/{lang}/{device}/{pageKey}/{file}.png
- * snapshots/
- └── pl/
-     └── desktop/
-         └── contact/
-             ├── prod/
-             └── stage/
+export async function compareEnvs({
+  browser,
+  productionUrl,
+  stagingUrl,
+  paths,
+  PageObject,
+}) {
+  const prodContext = await browser.newContext();
+  const stageContext = await browser.newContext();
 
- * ============================================================
- */
+  const prodPage = await prodContext.newPage();
+  const stagePage = await stageContext.newPage();
+
+  const prod = new PageObject(prodPage);
+  const stage = new PageObject(stagePage);
+
+  await prod.open(productionUrl);
+  await prod.clickAcceptCookieButton();
+  await prod.scrollPage();
+  const prodBuffer = await prodPage.screenshot({ fullPage: true });
+  fs.writeFileSync(paths.production, prodBuffer);
+
+  await stage.open(stagingUrl);
+  await stage.clickAcceptCookieButton();
+  await stage.scrollPage();
+  const stageBuffer = await stagePage.screenshot({ fullPage: true });
+  fs.writeFileSync(paths.staging, stageBuffer);
+
+  await expect(stageBuffer).toMatchSnapshot(prodBuffer);
+
+  await prodContext.close();
+  await stageContext.close();
+}

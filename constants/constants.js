@@ -1,3 +1,5 @@
+export const BUTTON_ACCEPT_COOKIE = "#ccc-notify-accept";
+
 export const LANGS = {
   pl: "/pl/pl/",
   en: "/gb/en/",
@@ -10,4 +12,7 @@ export const PAGES = {
   projects: { pl: "zrealizowane-projekty/", en: "" },
 };
 
-export const button_accept_cookie = "#ccc-notify-accept";
+export const BASE_URLS = {
+  production: "https://www.kingspan.com",
+  staging: "https://stage.kingspan.com",
+};
